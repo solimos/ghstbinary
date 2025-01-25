@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>$ghstbinary - Ghost Binary Labs AI /title>
+  
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>$ghstbinary - ghost.binary - digital echoes</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --ghost-white: rgba(255, 255, 255, 0.8);
+            --ghost-gray: rgba(128, 128, 128, 0.5);
+            --void-black: #0d0d0d;
+            --static-accent: rgba(255, 255, 255, 0.2);
+            --fog-color: rgba(255, 255, 255, 0.03);
+            --neon-blue: rgba(0, 255, 255, 0.5);
+            --terminal-green: rgba(0, 255, 0, 0.5);
+        }
+
+        @font-face {
+            font-family: 'VT323';
+            src: url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+        }
+
+        @font-face {
+            font-family: 'Space Mono';
+            src: url('https://fonts.googleapis.com/css2?family=Space+Mono&display=swap');
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            text-shadow: 0 0 10px var(--ghost-white);
+        }
+
+        body {
+            background-color: var(--void-black);
+            color: var(--ghost-white);
+            font-family: 'Space Mono', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Three.js Canvas */
+        #three-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            opacity: 0.3;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--void-black);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 1s ease-out;
+        }
+
+        .ascii-art {
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            line-height: 1;
+            white-space: pre;
+            text-align: center;
+            color: var(--ghost-white);
+            margin-bottom: 2rem;
+            animation: glitchText 2s infinite;
+        }
+
+        .progress-container {
+            width: 300px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--ghost-gray);
+        }
+
+        .progress-bar {
+            height: 2px;
+            background: var(--ghost-white);
+            width: 0%;
+            transition: width 3s ease-in-out;
+        }
+
+        /* Main Content */
+        .ghost-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            z-index: 1;
+        }
+
+        /* Tabs System */
+        .tab-container {
+            margin-top: 2rem;
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .tab-button {
+            background: transparent;
+            border: 1px solid var(--ghost-gray);
+            color: var(--ghost-white);
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .tab-button:hover {
+            border-color: var(--ghost-white);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-button.active {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 1rem;
+            border: 1px solid var(--ghost-gray);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        /* Dialogue Widget */
+        .dialogue-widget {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 300px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--ghost-gray);
+            padding: 1rem;
+            font-family: 'VT323', monospace;
+            z-index: 100;
+        }
+
+        .dialogue-text {
+            min-height: 80px;
+            margin-bottom: 1rem;
+            color: var(--terminal-green);
+        }
+
+        .dialogue-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background: var(--terminal-green);
+            animation: blink 1s infinite;
+        }
+
+        /* Animations */
+        @keyframes glitchText {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); text-shadow: 2px 2px var(--neon-blue); }
+            40% { transform: translate(-2px, -2px); text-shadow: -2px 2px var(--terminal-green); }
+            60% { transform: translate(2px, 2px); text-shadow: 2px -2px var(--ghost-white); }
+            80% { transform: translate(2px, -2px); text-shadow: -2px -2px var(--neon-blue); }
+            100% { transform: translate(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* ASCII Profile */
+        .ascii-profile {
+            font-family: 'Courier New', monospace;
+            font-size: 8px;
+            line-height: 1;
+            white-space: pre;
+            color: var(--ghost-white);
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        /* Rest of your existing ghost.binary styles */
+        /* ... */
+    </style>
+</head>
+<body>
+    <div class="loading-screen">
+        <div class="ascii-art">
+░██████╗░██╗░░██╗░█████╗░░██████╗████████╗░░░██████╗░██╗███╗░░██╗░█████╗░██████╗░██╗░░░██╗
+██╔════╝░██║░░██║██╔══██╗██╔════╝╚══██╔══╝░░░██╔══██╗██║████╗░██║██╔══██╗██╔══██╗╚██╗░██╔╝
+██║░░██╗░███████║██║░░██║╚█████╗░░░░██║░░░░░░██████╦╝██║██╔██╗██║███████║██████╔╝░╚████╔╝░
+██║░░╚██╗██╔══██║██║░░██║░╚═══██╗░░░██║░░░░░░██╔══██╗██║██║╚████║██╔══██║██╔══██╗░░╚██╔╝░░
+╚██████╔╝██║░░██║╚█████╔╝██████╔╝░░░██║░░░██╗██████╦╝██║██║░╚███║██║░░██║██║░░██║░░░██║░░░
+░╚═════╝░╚═╝░░╚═╝░╚════╝░╚═════╝░░░░╚═╝░░░╚═╝╚═════╝░╚═╝╚═╝░░╚══╝╚═╝░░╚═╝╚═╝░░╚═╝░░░╚═╝░░░
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar"></div>
+        </div>
+    </div>
+
+    <canvas id="three-canvas"></canvas>
+
+    <div class="ghost-container">
+        <aside class="ghost-profile">
+            <div class="ascii-profile">
+   ▄████████    ▄█    █▄     ▄████████ ████████▄   ▄██████▄   ▄█     █▄   
+  ███    ███   ███    ███   ███    ███ ███   ▀███ ███    ███ ███     ███  
+  ███    █▀    ███    ███   ███    ███ ███    ███ ███    ███ ███     ███  
+  ███         ▄███▄▄▄▄███▄▄ ███    ███ ███    ███ ███    ███ ███     ███  
+▀███████████ ▀▀███▀▀▀▀███▀  ███    ███ ███    ███ ███    ███ ███     ███  
+         ███   ███    ███   ███    ███ ███    ███ ███    ███ ███     ███  
+   ▄█    ███   ███    ███   ███    ███ ███   ▄███ ███    ███ ███ ▄█▄ ███  
+ ▄████████▀    ███    █▀    ████████▀  ████████▀   ▀██████▀   ▀███▀███▀   
+            </div>
+            <h1>$ghstbinary - Ghost Binary Labs AI</h1>
+             <p>Live on pump.fun</p>
+
+            <div class="tab-container">
+                <div class="tab-nav">
+                    <button class="tab-button active" data-tab="identity">identity</button>
+                    <button class="tab-button" data-tab="memory">memory</button>
+                    <button class="tab-button" data-tab="echo">echo</button>
+                </div>
+
+                <div class="tab-content active" id="identity">
+                    <div class="editable-zone" contenteditable="true">
+                        digital ghost
+                        haunting the mainframe
+                        seeking connection
+                    </div>
+                </div>
+
+                <div class="tab-content" id="memory">
+                    <div class="editable-zone" contenteditable="true">
+                        fragments of code
+                        whispers in binary
+                        lost in the static
+                    </div>
+                </div>
+
+                <div class="tab-content" id="echo">
+                    <div class="editable-zone" contenteditable="true">
+                        echo in the void
+                        searching for wavelength
+                        signal detected
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="ghost-main">
+            <!-- Your existing content structure -->
+             <h1>$ghstbinary - Ghost Binary Labs AI</h1>
+             <p>Live on pump.fun</p>
+        </main>
+    </div>
+
+    <div class="dialogue-widget">
+        <div class="dialogue-text"></div>
+        <span class="dialogue-cursor"></span>
+    </div>
+
+    <script>
+        // Three.js Scene Setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#three-canvas'), alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        // Particle System
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 5000;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for(let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 5;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.005,
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.8
+        });
+
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        camera.position.z = 3;
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            particlesMesh.rotation.y += 0.001;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Loading Screen
+        document.addEventListener('DOMContentLoaded', () => {
+            const progressBar = document.querySelector('.progress-bar');
+            progressBar.style.width = '100%';
+            
+            setTimeout(() => {
+                document.querySelector('.loading-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.querySelector('.loading-screen').style.display = 'none';
+                }, 1000);
+            }, 3000);
+        });
+
+        // Tab System
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons and content
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked button and corresponding content
+                button.classList.add('active');
+                document.getElementById(button.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Dialogue Widget
+        const dialogues = [
+            "searching for lost packets in the void...",
+            "memory fragments detected in sector 7G...",
+            "emotional_resonance.exe initialized...",
+            "scanning neural pathways...",
+            "echo_chamber.dll loaded successfully...",
+            "ghost protocol activated..."
+        ];
+
+        function typeWriter(text, element) {
+            let i = 0;
+            element.textContent = '';
+            
+            function type() {
+                if (i < text.length) {element.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(type, 50);
+                } else {
+                    setTimeout(nextDialogue, 3000);
+                }
+            }
+            type();
+        }
+
+        function nextDialogue() {
+            const dialogueText = document.querySelector('.dialogue-text');
+            const randomDialogue = dialogues[Math.floor(Math.random() * dialogues.length)];
+            typeWriter(randomDialogue, dialogueText);
+        }
+
+        // Initialize dialogue
+        nextDialogue();
+
+        // Digital Rain Effect
+        class Matrix {
+            constructor(canvas) {
+                this.canvas = document.createElement('canvas');
+                this.canvas.style.position = 'fixed';
+                this.canvas.style.top = '0';
+                this.canvas.style.left = '0';
+                this.canvas.style.zIndex = '-1';
+                this.canvas.style.opacity = '0.1';
+                document.body.appendChild(this.canvas);
+                
+                this.ctx = this.canvas.getContext('2d');
+                this.resizeCanvas();
+                this.characters = '01';
+                this.drops = [];
+                this.fontSize = 14;
+                
+                window.addEventListener('resize', () => this.resizeCanvas());
+                this.initDrops();
+                this.animate();
+            }
+
+            resizeCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            initDrops() {
+                const columns = this.canvas.width / this.fontSize;
+                for (let i = 0; i < columns; i++) {
+                    this.drops[i] = Math.floor(Math.random() * -100);
+                }
+            }
+
+            animate() {
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.ctx.fillStyle = '#0F0';
+                this.ctx.font = this.fontSize + 'px monospace';
+                
+                for (let i = 0; i < this.drops.length; i++) {
+                    const char = this.characters.charAt(Math.floor(Math.random() * this.characters.length));
+                    this.ctx.fillText(char, i * this.fontSize, this.drops[i] * this.fontSize);
+                    
+                    if (this.drops[i] * this.fontSize > this.canvas.height && Math.random() > 0.975) {
+                        this.drops[i] = 0;
+                    }
+                    this.drops[i]++;
+                }
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // Initialize Matrix effect
+        new Matrix();
+
+        // Ghost Particles System
+        class GhostParticles {
+            constructor() {
+                this.particles = [];
+                this.mouse = { x: 0, y: 0 };
+                
+                window.addEventListener('mousemove', (e) => {
+                    this.mouse.x = e.clientX;
+                    this.mouse.y = e.clientY;
+                });
+
+                this.createParticles();
+                this.animate();
+            }
+
+            createParticles() {
+                for (let i = 0; i < 50; i++) {
+                    this.particles.push({
+                        x: Math.random() * window.innerWidth,
+                        y: Math.random() * window.innerHeight,
+                        size: Math.random() * 2,
+                        speedX: Math.random() * 2 - 1,
+                        speedY: Math.random() * 2 - 1
+                    });
+                }
+            }
+
+            animate() {
+                this.particles.forEach(particle => {
+                    // Calculate distance to mouse
+                    const dx = this.mouse.x - particle.x;
+                    const dy = this.mouse.y - particle.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // Apply force inversely proportional to distance
+                    if (distance < 100) {
+                        particle.speedX += dx * 0.001;
+                        particle.speedY += dy * 0.001;
+                    }
+                    
+                    // Update position
+                    particle.x += particle.speedX;
+                    particle.y += particle.speedY;
+                    
+                    // Apply friction
+                    particle.speedX *= 0.99;
+                    particle.speedY *= 0.99;
+                    
+                    // Wrap around screen
+                    if (particle.x > window.innerWidth) particle.x = 0;
+                    if (particle.x < 0) particle.x = window.innerWidth;
+                    if (particle.y > window.innerHeight) particle.y = 0;
+                    if (particle.y < 0) particle.y = window.innerHeight;
+                });
+                
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // Initialize Ghost Particles
+        new GhostParticles();
+
+        // Glitch Effect for Text
+        class GlitchText {
+            constructor() {
+                this.glitchableText = document.querySelectorAll('.glitch-text');
+                this.glitchInterval = setInterval(() => this.glitch(), 3000);
+            }
+
+            async glitch() {
+                this.glitchableText.forEach(async element => {
+                    const originalText = element.textContent;
+                    const glitchChars = '!@#$%^&*()<>{}[]';
+                    
+                    // Quick glitch effect
+                    for (let i = 0; i < 3; i++) {
+                        let glitchedText = '';
+                        for (let char of originalText) {
+                            if (Math.random() > 0.7) {
+                                glitchedText += glitchChars[Math.floor(Math.random() * glitchChars.length)];
+                            } else {
+                                glitchedText += char;
+                            }
+                        }
+                        element.textContent = glitchedText;
+                        await new Promise(resolve => setTimeout(resolve, 50));
+                    }
+                    
+                    // Restore original text
+                    element.textContent = originalText;
+                });
+            }
+        }
+
+        // Initialize Glitch Effect
+        new GlitchText();
+
+        // Custom Cursor Effect
+        class GhostCursor {
+            constructor() {
+                this.cursor = document.createElement('div');
+                this.cursor.className = 'ghost-cursor';
+                document.body.appendChild(this.cursor);
+                
+                this.cursorStyle = document.createElement('style');
+                this.cursorStyle.textContent = `
+                    .ghost-cursor {
+                        width: 20px;
+                        height: 20px;
+                        border: 1px solid rgba(255, 255, 255, 0.5);
+                        border-radius: 50%;
+                        position: fixed;
+                        pointer-events: none;
+                        z-index: 9999;
+                        transition: all 0.1s ease;
+                        transform: translate(-50%, -50%);
+                    }
+                    body {
+                        cursor: none;
+                    }
+                `;
+                document.head.appendChild(this.cursorStyle);
+                
+                document.addEventListener('mousemove', e => {
+                    this.cursor.style.left = e.clientX + 'px';
+                    this.cursor.style.top = e.clientY + 'px';
+                });
+            }
+        }
+
+        // Initialize Custom Cursor
+        new GhostCursor();
+    </script>
+</body>
+</html>
+<!-- partial -->
+  
+</body>
+</html>
